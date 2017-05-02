@@ -58,7 +58,7 @@ def writeDataToFile(data, outputPath):
 def main():
 	if(len(sys.argv) < 5):
 		print("Please include the following arguments, in this order:")
-		print("API URL of Gihub Repository, Github Username, Github Password")
+		print("Github Username, Github Password, Repository Owner, Repository Name")
 	else:
 		# collect input arguments 
 		userName = sys.argv[1]
