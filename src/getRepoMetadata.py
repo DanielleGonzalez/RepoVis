@@ -40,7 +40,6 @@ def writeDataToFile(data, outputPath):
 	try:
 		#create the header with the attribute names
 		for attrib in firstItem:
-			print((str(attrib)))
 			outFile.write(str(attrib) + ",")
 		outFile.write('\n')
 		# # Add data to the CSV
@@ -49,7 +48,7 @@ def writeDataToFile(data, outputPath):
 				outFile.write(str(result[attribute]) + ",")
 			outFile.write("\n")
 	except Exception as exc:
-	        print('Generated an exception during output: ' + str(exc))
+			print('Generated an exception during output: ' + str(exc))
 	outFile.close()
 
 	print("Data has been added to " + str(outputPath))
@@ -75,7 +74,7 @@ def main():
 		#contributorOutput = "../data/" + str(repoName) + "-contributors.csv"
 		#pullRequestOutput = "../data/" + str(repoName) + "-pullrequests.csv"
 		#issueOutput = "../data/" + str(repoName) + "-issues.csv"
-		#releasesOutput = "../data/" + str(repoName) + "-releases.csv"
+		releasesOutput = "../data/" + str(repoName) + "-releases.csv"
 
 		# get the requested data from the Github API and then write it to the data file
 
@@ -85,9 +84,9 @@ def main():
 		#pullRequestData = apiUtil.getPullRequests(userName, pw, repoURL)
 		#writeDataToFile(pullRequestData, pullRequestOutput)
 		
-		issueData = apiUtil.getIssues(userName, pw, repoURL)
-		writeDataToFile(issueData, issueOutput)
+		#issueData = apiUtil.getIssues(userName, pw, repoURL)
+		#writeDataToFile(issueData, issueOutput)
 		
-		# releasesData = apiUtil.getReleases(userName, pw, repoURL)
-		# writeDataToFile(releasesData, releasesOutput)
+		releasesData = apiUtil.getReleases(userName, pw, repoURL)
+		writeDataToFile(releasesData, releasesOutput)
 main()

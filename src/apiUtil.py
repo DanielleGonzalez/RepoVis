@@ -81,8 +81,8 @@ def getPullRequests(user, pw, repoURL):
 			# add each pull request to a new object
 			'''
 			Pull Request objects have nested attributes so I am adding them to the final object manually
-			Totally Excluded:  __links, head, base, milestone, & assignee nested attributes 
-			Select Attributes Included: user (login & html_url)
+			Totally Excluded:  __links, head, base, & assignee nested attributes 
+			Select Attributes Included: user (login & html_url), milestone (html_url, number)
 			If you want the excluded information please modify this to your needs
 			'''
 			for pr in pullRequestObject:
@@ -103,6 +103,12 @@ def getPullRequests(user, pw, repoURL):
 				pr_dict['statuses_url'] = pr['statuses_url']
 				pr_dict['patch_url'] = pr['patch_url']
 				pr_dict['issue_url'] = pr['issue_url']
+				if pr['milestone'] != None:
+					pr_dict['milestone_htmlURL'] = pr['milestone']['html_url']
+					pr_dict['milestone_id'] = pr['milestone']['id']
+				else:
+					pr_dict['milestone_htmlURL'] = None
+					pr_dict['milestone_id'] = None
 				pr_dict['review_comment_url'] = pr['review_comment_url']
 				pr_dict['closed_at'] = pr['closed_at']
 				pr_dict['user_login'] = pr['user']['login']
@@ -120,7 +126,79 @@ def getPullRequests(user, pw, repoURL):
 
 # issues API doc: https://developer.github.com/v3/issues/
 def getIssues(user, pw, repoURL):
-	print("temp")
+	# API returns paginated results!
+	pageNum = 1
+	issues = []
+
+	while True:
+		
+		issuesURL = repoURL + "/issues"
+		params = {'page': pageNum, 'per_page': 100, 'milestone': '*', 'state':'all'}
+
+		apiResponse = requests.get(issuesURL, auth=(user,pw), params=params)
+		statusCode = int(apiResponse.headers['Status'].split()[0])
+		
+		# 200 is OK
+		if statusCode == 200:
+			issuesObject = apiResponse.json() #get the data
+			
+			#stops when no more pages 
+			if len(issuesObject) < 1:
+				break
+			'''
+			Issue objects have nested attributes so I am adding them to the final object manually
+			Totally Excluded:  __links, head, base & assignee nested attributes 
+			Select Attributes Included: user (login & html_url), milestone (html_url, number), labels(labelnames)
+			If you want the excluded information please modify this to your needs
+			'''
+			# add each contributor to a new object
+			for issue in issuesObject:
+				issue_dict = {}
+				issue_dict['id'] = issue['id']
+				issue_dict['url'] = issue['url']
+				issue_dict['repository_url'] = issue['repository_url']
+				issue_dict['labels_url'] = issue['labels_url']
+				issue_dict['comments_url'] = issue['comments_url']
+				issue_dict['events_url'] = issue['events_url']
+				issue_dict['html_url'] = issue['html_url']
+				issue_dict['number'] = issue['number']
+				issue_dict['state'] = issue['state']
+				issue_dict['title'] = issue['title'].replace(",", "") #because I am using csv commas in titles cause issues
+				issue_dict['user_login'] = issue['user']['login']
+				issue_dict['user_htmlURL'] = issue['user']['html_url']
+				
+				if len(issue['labels']) != 0:
+					labelList = issue['labels']
+					issue_dict['labels'] = ""
+					for label in labelList:
+						issue_dict['labels'] += str(label['name'].replace(",", ""))+ " " #create a space-separated list of labels
+				else:
+					issue_dict['labels'] = ""
+
+				if issue['milestone'] != None:
+					issue_dict['milestone_htmlURL'] = issue['milestone']['html_url']
+					issue_dict['milestone_id'] = issue['milestone']['id']
+				else:
+					issue_dict['milestone_htmlURL'] = None
+					issue_dict['milestone_id'] = None
+				
+				issue_dict['locked'] = issue['locked']
+				issue_dict['closed_at'] = issue['closed_at']
+				issue_dict['created_at'] = issue['created_at']
+				issue_dict['updated_at'] = issue['updated_at']
+
+				issues.append(issue_dict)
+
+		# increment the page 
+		pageNum += 1
+		
+			
+	#reference information
+	print("API Request Rate Limit Remaining: " + str(apiResponse.headers['X-RateLimit-Remaining']) + "/5000")
+	print("There are " + str(len(issues)) + " issues")
+	#return the object
+	return issues 
+
 
 # releases API doc: https://developer.github.com/v3/repos/releases/#list-releases-for-a-repository	
 def getReleases(user, pw, repoURL):
