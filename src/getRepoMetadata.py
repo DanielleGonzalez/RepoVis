@@ -22,6 +22,7 @@ other desired metadata
 
 Current Metadata Collected (On Repository-Level):
 1. Releases
+2. Tags
 2. Issues
 3. Pull Requests
 4. Contributors
@@ -34,24 +35,27 @@ PROGRAM OUTPUT:
 '''
 
 
-def writeDataToFile(data, outputPath):
+def writeDataToFile(data, outputPath, dataType):
 	outFile = open(outputPath, "a", encoding="utf-8")
-	firstItem = data[0]
-	try:
-		#create the header with the attribute names
-		for attrib in firstItem:
-			outFile.write(str(attrib) + ",")
-		outFile.write('\n')
-		# # Add data to the CSV
-		for result in data:
-			for attribute in result:
-				outFile.write(str(result[attribute]) + ",")
-			outFile.write("\n")
-	except Exception as exc:
-			print('Generated an exception during output: ' + str(exc))
-	outFile.close()
+	if len(data) != 0:
+		firstItem = data[0]
+		try:
+			#create the header with the attribute names
+			for attrib in firstItem:
+				outFile.write(str(attrib) + ",")
+			outFile.write('\n')
+			# # Add data to the CSV
+			for result in data:
+				for attribute in result:
+					outFile.write(str(result[attribute]) + ",")
+				outFile.write("\n")
+		except Exception as exc:
+				print('Generated an exception during output: ' + str(exc))
+		outFile.close()
 
-	print("Data has been added to " + str(outputPath))
+		print("Data for " + str(dataType) + " has been output to " + str(outputPath))
+	else:
+		print("No " + str(dataType) + " found for this project!")
 
 
 def main():
@@ -71,22 +75,29 @@ def main():
 		Each metadata has its own file. 
 		'''
 
-		#contributorOutput = "../data/" + str(repoName) + "-contributors.csv"
-		#pullRequestOutput = "../data/" + str(repoName) + "-pullrequests.csv"
-		#issueOutput = "../data/" + str(repoName) + "-issues.csv"
+		# contributorOutput = "../data/" + str(repoName) + "-contributors.csv"
+		# pullRequestOutput = "../data/" + str(repoName) + "-pullrequests.csv"
+		# issueOutput = "../data/" + str(repoName) + "-issues.csv"
 		releasesOutput = "../data/" + str(repoName) + "-releases.csv"
+		tagsOutput = "../data/" + str(repoName) + "-tags.csv"
 
 		# get the requested data from the Github API and then write it to the data file
 
 		# contributorData = apiUtil.getContributors(userName, pw, repoURL)
-		# writeDataToFile(contributorData, contributorOutput)
+		# writeDataToFile(contributorData, contributorOutput, "contributors")
 		
-		#pullRequestData = apiUtil.getPullRequests(userName, pw, repoURL)
-		#writeDataToFile(pullRequestData, pullRequestOutput)
+		# pullRequestData = apiUtil.getPullRequests(userName, pw, repoURL)
+		# writeDataToFile(pullRequestData, pullRequestOutput, "pull requests")
 		
-		#issueData = apiUtil.getIssues(userName, pw, repoURL)
-		#writeDataToFile(issueData, issueOutput)
+		# issueData = apiUtil.getIssues(userName, pw, repoURL)
+		# writeDataToFile(issueData, issueOutput, "issues")
 		
+		# NOTE! If there are no releases OR the releases are not public, this will be empty
 		releasesData = apiUtil.getReleases(userName, pw, repoURL)
-		writeDataToFile(releasesData, releasesOutput)
+		writeDataToFile(releasesData, releasesOutput, "releases")
+
+		tagsData = apiUtil.getTags(userName,pw,repoURL)
+		writeDataToFile(tagsData, tagsOutput, "tags")
+
+
 main()

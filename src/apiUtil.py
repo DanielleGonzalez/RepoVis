@@ -21,7 +21,7 @@ The rest will appear as anonymous contributors without associated GitHub user in
 
 # contributors API doc: https://developer.github.com/v3/repos/#list-contributors
 def getContributors(user, pw, repoURL):
-
+	print("Collecting Contributors for Project...")
 	# API returns paginated results!
 	pageNum = 1
 	contributors = []
@@ -58,6 +58,7 @@ def getContributors(user, pw, repoURL):
 
 #pull requests API doc: https://developer.github.com/v3/pulls/
 def getPullRequests(user, pw, repoURL):
+	print("Collecting Pull Requests for Project...")
 	# API returns paginated results!
 	pageNum = 1
 	pullrequests = []
@@ -126,6 +127,7 @@ def getPullRequests(user, pw, repoURL):
 
 # issues API doc: https://developer.github.com/v3/issues/
 def getIssues(user, pw, repoURL):
+	print("Collecting Issues for Project...")
 	# API returns paginated results!
 	pageNum = 1
 	issues = []
@@ -151,7 +153,7 @@ def getIssues(user, pw, repoURL):
 			Select Attributes Included: user (login & html_url), milestone (html_url, number), labels(labelnames)
 			If you want the excluded information please modify this to your needs
 			'''
-			# add each contributor to a new object
+
 			for issue in issuesObject:
 				issue_dict = {}
 				issue_dict['id'] = issue['id']
@@ -202,5 +204,98 @@ def getIssues(user, pw, repoURL):
 
 # releases API doc: https://developer.github.com/v3/repos/releases/#list-releases-for-a-repository	
 def getReleases(user, pw, repoURL):
-	print("temp")
-	
+	print("Collecting Releases for Project...")
+	# API returns paginated results!
+	pageNum = 1
+	releases = []
+
+	while True:
+		
+		releasesURL = repoURL + "/releases"
+		params = {'page': pageNum, 'per_page': 100}
+
+		apiResponse = requests.get(releasesURL, auth=(user,pw), params=params)
+		statusCode = int(apiResponse.headers['Status'].split()[0])
+		
+		# 200 is OK
+		if statusCode == 200:
+			releasesObject = apiResponse.json() #get the data
+			
+			#stops when no more pages 
+			if len(releasesObject) < 1:
+				break
+			'''
+			Release objects have nested attributes so I am adding them to the final object manually
+			Partially Included: assets -> uploader (login, html_url), author (login, html_url)
+			Totally Excluded: author, assets
+			'''
+
+			for release in releasesObject:
+				release_dict = {}
+				release_dict['url'] = release['url']
+				release_dict['html_url'] = release['html_url']
+				release_dict['assets_url'] = release['assets_url']
+				release_dict['upload_url'] = release['upload_url'].replace(",", "")
+				release_dict['tarball_url'] = release['tarball_url']
+				release_dict['zipball_url'] = release['zipball_url']
+				release_dict['id'] = release['id']
+				release_dict['tag_name'] = release['tag_name']
+				release_dict['target_commitish'] = release['target_commitish']
+				release_dict['name'] = release['name']
+				release_dict['draft'] = release['draft']
+				release_dict['prerelease'] = release['prerelease']
+				release_dict['created_at'] = release['created_at']
+				release_dict['published_at'] = release['published_at']
+				releases.append(release_dict)
+
+		# increment the page 
+		pageNum += 1
+		
+	print("API Request Rate Limit Remaining: " + str(apiResponse.headers['X-RateLimit-Remaining']) + "/5000")
+	#reference information
+	print("There are " + str(len(releases)) + " releases")
+	#return the object
+	return releases 
+
+
+def getTags(user, pw, repoURL):
+	print("Collecting Tags for Project...")
+	# API returns paginated results!
+	pageNum = 1
+	tags = []
+
+	while True:
+		
+		tagURL = repoURL + "/tags"
+		params = {'page': pageNum, 'per_page': 100}
+
+		apiResponse = requests.get(tagURL, auth=(user,pw), params=params)
+		statusCode = int(apiResponse.headers['Status'].split()[0])
+		
+		# 200 is OK
+		if statusCode == 200:
+			tagURL = apiResponse.json() #get the data
+			
+			#stops when no more pages 
+			if len(tagURL) < 1:
+				break
+
+			# add each contributor to a new object
+			for tag in tagURL:
+				tag_dict = {}
+				tag_dict['name'] = tag['name']
+				tag_dict['commit_sha'] = tag['commit']['sha']
+				tag_dict['commit_url'] = tag['commit']['url']
+				tag_dict['zipball_url'] = tag['zipball_url']
+				tag_dict['tarball_url'] = tag['tarball_url']
+				tags.append(tag_dict)
+
+		# increment the page 
+		pageNum += 1
+		
+			
+	#reference information
+	print("API Request Rate Limit Remaining: " + str(apiResponse.headers['X-RateLimit-Remaining']) + "/5000")
+	print("There are " + str(len(tags)) + " tags")
+	#return the object
+	return tags 
