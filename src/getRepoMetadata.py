@@ -11,10 +11,10 @@ Author: Danielle Gonzalez dng2551@rit.edu
 This program collects metadata for a project by calling the Github API
 
 PROGRAM INPUT:
-	your Github USERNAME
-	your Gihub PASSWORD (Please note, there is no persistent storage of credentials!)
-	the OWNER of the github repository
-	the NAME of the github repository
+	1. your Github USERNAME
+	2. your Gihub PASSWORD (Please note, there is no persistent storage of credentials!)
+	3. the OWNER of the github repository
+	4. the NAME of the github repository
 	Example: python getRepoMetadata userName passWord golang go
 
 The program is designed to work with any project, as well as to be extensible to include
@@ -29,9 +29,9 @@ Current Metadata Collected (On Repository-Level):
 
 
 PROGRAM OUTPUT:
-	One CSV file for each type of metadata
-	Each row is one entry returned by the API
-	For example, each row of issueOutput is data for one issue in the repository
+	1. One CSV file for each type of metadata
+		Each row is one entry returned by the API
+		For example, each row of issueOutput is data for one issue in the repository
 '''
 
 
@@ -40,11 +40,11 @@ def writeDataToFile(data, outputPath, dataType):
 	if len(data) != 0:
 		firstItem = data[0]
 		try:
-			#create the header with the attribute names
+			# Create the header with the attribute names
 			for attrib in firstItem:
 				outFile.write(str(attrib) + ",")
 			outFile.write('\n')
-			# # Add data to the CSV
+			# Add data to the CSV
 			for result in data:
 				for attribute in result:
 					outFile.write(str(result[attribute]) + ",")
@@ -75,22 +75,22 @@ def main():
 		Each metadata has its own file. 
 		'''
 
-		# contributorOutput = "../data/" + str(repoName) + "-contributors.csv"
-		# pullRequestOutput = "../data/" + str(repoName) + "-pullrequests.csv"
-		# issueOutput = "../data/" + str(repoName) + "-issues.csv"
+		contributorOutput = "../data/" + str(repoName) + "-contributors.csv"
+		pullRequestOutput = "../data/" + str(repoName) + "-pullrequests.csv"
+		issueOutput = "../data/" + str(repoName) + "-issues.csv"
 		releasesOutput = "../data/" + str(repoName) + "-releases.csv"
 		tagsOutput = "../data/" + str(repoName) + "-tags.csv"
 
 		# get the requested data from the Github API and then write it to the data file
 
-		# contributorData = apiUtil.getContributors(userName, pw, repoURL)
-		# writeDataToFile(contributorData, contributorOutput, "contributors")
+		contributorData = apiUtil.getContributors(userName, pw, repoURL)
+		writeDataToFile(contributorData, contributorOutput, "contributors")
 		
-		# pullRequestData = apiUtil.getPullRequests(userName, pw, repoURL)
-		# writeDataToFile(pullRequestData, pullRequestOutput, "pull requests")
+		pullRequestData = apiUtil.getPullRequests(userName, pw, repoURL)
+		writeDataToFile(pullRequestData, pullRequestOutput, "pull requests")
 		
-		# issueData = apiUtil.getIssues(userName, pw, repoURL)
-		# writeDataToFile(issueData, issueOutput, "issues")
+		issueData = apiUtil.getIssues(userName, pw, repoURL)
+		writeDataToFile(issueData, issueOutput, "issues")
 		
 		# NOTE! If there are no releases OR the releases are not public, this will be empty
 		releasesData = apiUtil.getReleases(userName, pw, repoURL)
