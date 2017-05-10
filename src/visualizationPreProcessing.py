@@ -29,40 +29,93 @@ PROGRAM INPUT:
 		or placed in a subfolder. 
 
 PROGRAM OUTPUT: 
-	1. 2 CSV files containing the issues and pull requests sorted by release (Date Opened)
-	   such that an issue/PR is considered part of a release if it was opened AFTER the previous release
+	1. 2 CSV files containing the issues and pull requests with release data included (Date Opened)
+	   A PR or Issue is assigned to the EARLIEST release that happened AFTER it was opened
 	   
-   	2. 2 CSV files containing the issues and pull requests sorted by release (Date Closed)
-   	   such that an issue/PR is considered part of a release if it was closed AFTER the previous release
+   	2. 2 CSV files containing the issues and pull requests with release data included (Date Closed)
+   	   A PR or Issue is assigned to the EARLIEST release that happened AFTER it was opened
    
     3. 1 CSV file containing the contributors who opened pull requests and issues sorted by release 
 
 '''
 
+def writeDataToFile(data, outputPath, dataType):
+	outFile = open(outputPath, "a", encoding="utf-8")
+	firstItem = next(iter(data.values())) #get any dict value
+	try:
+		# Create the header with the attribute names
+		for attrib in firstItem:
+			outFile.write(str(attrib) + ",")
+		outFile.write('\n')
+		# Add data to the CSV
+		for record in data:
+			row = data[record]
+			for attribute in row:
+				#print(row[attribute])
+				outFile.write(str(row[attribute]) + ",")
+			outFile.write("\n")
+	except Exception as exc:
+		print("Generated an exception during " + str(dataType) + " output: " + str(exc))
+	else:
+		print(str(dataType) + " data has been output to " + str(outputPath))
+		outFile.close()
+
+
 '''
 organizeByDate
 
-groups PRs and Issues into releases, using 
+groups PRs and Issues into releases
+
+NOTE: This currently ignores data created or closed AFTER the last release date
 
 INPUT:
-	1. sortBy: a STRING, either 'open' or closed'. 
-		if it is 'open' then it will organize by date opened, if it is 'closed' it will organize by date closed
+	1. sortBy: a STRING, either 'created_at' or closed_at'. 
 	2. releases: a DICTIONARY with key as release name and value is a python date object
-	3. sortedReleaseNames: a LIST of release names, sorted by date
-	4. firstRelease: the date of the first release
 	5. pullRequests: a DICTIONARY with key as pr number and value as other pr data
 	6. issues: a DICTIONARY with key as issue number and value as other issue data
+	7. repoName: a STRING of the repo name, for output purposes
 
 OUTPUT: 
 	None, but outputs combined data into csv with release name and date added as new columns
 
 '''
-def organizeByDate(sortBy,releases,sortedReleasesNames,firstRelease, pullRequests,issues):
+def organizeByDate(sortBy,releases,pullRequests,issues,repoName):
 
-	sortedPRs = {} # this will be a dictionary with key as release name and value is dictionary of prs
-	sortedIssues = {} # this will be a dictionary with key as release name and value is dictionary of prs
+	print("Organizing " + str(len(pullRequests)) + " Pull Requests by Release Date...")
+	for pr in pullRequests:
+		#get all releases that happened after the pr was opened, then sort this list by date
+		prDate = datetime.datetime.strptime(pullRequests[pr][sortBy], "%Y-%m-%dT%H:%M:%SZ")
+		possiblePRReleases = dict((k, v) for k, v in releases.items() if v >= prDate)
+		
+		if len(possiblePRReleases) > 0:
+			# the earliest release that happened AFTER the PR was opened or closed is selected as the release
+			# for example, all PRs opened before the first release 'belong' to that release
+			prRelease = sorted(possiblePRReleases, key=possiblePRReleases.get)[0]
+			pullRequests[pr]['release_Date'] = releases[prRelease].strftime("%Y-%m-%dT%H:%M:%SZ")
+			pullRequests[pr]['release_Name'] = prRelease
+
+	print("Organizing " + str(len(issues)) + " Issues by Release Date...")
+	for issue in issues:
+		#get all releases that happened after the pr was opened, then sort this list by date
+		issueDate = datetime.datetime.strptime(issues[issue][sortBy], "%Y-%m-%dT%H:%M:%SZ")
+		possibleIssueReleases = dict((k, v) for k, v in releases.items() if v >= issueDate)
+		
+		if len(possibleIssueReleases) > 0:
+			# the earliest release that happened AFTER the PR was opened or closed is selected as the release
+			# for example, all PRs opened before the first release 'belong' to that release
+			issueRelease = sorted(possibleIssueReleases, key=possibleIssueReleases.get)[0]
+			issues[issue]['release_Date'] = releases[issueRelease].strftime("%Y-%m-%dT%H:%M:%SZ")
+			issues[issue]['release_Name'] = issueRelease
+			
+	pullRequestOutput = "../data/" + str(repoName) + "-pullrequests-WITH-RELEASES.csv"
+	issueOutput = "../data/" + str(repoName) + "-issues-WITH-RELEASES.csv"
 	
-	
+	writeDataToFile(pullRequests,pullRequestOutput, "Pull Requests (" + str(sortBy) + ")")
+	writeDataToFile(issues, issueOutput, "Issue (" + str(sortBy) + ")")
+
+
+
+		
 
 
 '''
@@ -104,18 +157,13 @@ def main():
 				print("No Releases! Sorry, please choose another project.")
 			else:
 				print(str(len(releases)) + " Releases found!")
-				
-				# get a list of release names sorted by date
-				sortedReleaseNames = sorted(releases, key=releases.get)
-				# get the date of the fist release
-				firstReleaseDate = releases[sortedReleaseNames[0]]
 
 				# put pull request data in a dict
 				with pullRequestCSV.open() as prFile:
 					prReader = csv.DictReader(prFile)
-					pullrequests = {}
+					pullRequests = {}
 					for row in prReader:
-						pullRequests['number'] = row
+						pullRequests[row['number']] = row
 				prFile.close()
 
 				# put issue data in a dict
@@ -123,10 +171,10 @@ def main():
 					issueReader = csv.DictReader(issueFile)
 					issues = {}
 					for row in issueReader:
-						issues['number'] = row
+						issues[row['number']] = row
 				issueFile.close()	
 		releaseFile.close()
 		# organize the PR and issue data by date opened and closed
-		organizeByDate('open', releases, sortedReleaseNames, firstReleaseDate, pullRequestCSV, issuesCSV)
-		#organizeByDate('closed', releases, sortedReleaseNames, firstReleaseDate, pullRequestCSV, issuesCSV)
+		organizeByDate('created_at', releases, pullRequests, issues, repoName)
+		#organizeByDate('closed_at', releases, pullRequest, issues)
 main() 
