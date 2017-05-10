@@ -3,6 +3,8 @@ import codecs
 import os 
 import csv
 from pathlib import Path
+import datetime
+import collections
 
 '''
 visualizationPreProcessing
@@ -13,8 +15,7 @@ The goal of RepoVis is to make project chatacteristics across releases (or tags 
 Therefore, the data collected needs to be organized into release-based collections of data
 
 Note: the code currently looks to see if there are releases. If there are, then data is organized by release
-If there are no releases, it organizes by tags
-THERE MAY BE MORE TAGS THAN RELEASES, so keep that in mind and change the code if you want to use both. 
+If there are no releases, this operation cannot be performed
 
 Current Metadata Organized :
 1. Issues
@@ -28,21 +29,48 @@ PROGRAM INPUT:
 		or placed in a subfolder. 
 
 PROGRAM OUTPUT: 
-	1. CSV file containing both the issues and pull requests sorted by release/tag (Date Opened)
-	   such that an issue/PR is considered part of a release if it was opened AFTER the previous release/tag
+	1. 2 CSV files containing the issues and pull requests sorted by release (Date Opened)
+	   such that an issue/PR is considered part of a release if it was opened AFTER the previous release
 	   
-   	2. CSV file containing both the issues and pull requests sorted by release/tag (Date Closed)
-   	   such that an issue/PR is considered part of a release if it was closed AFTER the previous release/tag
+   	2. 2 CSV files containing the issues and pull requests sorted by release (Date Closed)
+   	   such that an issue/PR is considered part of a release if it was closed AFTER the previous release
    
-    3. CSV file containing the contributors who opened pull requests and issues sorted by release/tag 
+    3. 1 CSV file containing the contributors who opened pull requests and issues sorted by release 
 
 '''
-def organizeByReleases(releases):
-	print("placeholder")
 
-def organizeByTags(tags):
-	print("placeholder")
+'''
+organizeByDate
 
+groups PRs and Issues into releases, using 
+
+INPUT:
+	1. sortBy: a STRING, either 'open' or closed'. 
+		if it is 'open' then it will organize by date opened, if it is 'closed' it will organize by date closed
+	2. releases: a DICTIONARY with key as release name and value is a python date object
+	3. sortedReleaseNames: a LIST of release names, sorted by date
+	4. firstRelease: the date of the first release
+	5. pullRequests: a DICTIONARY with key as pr number and value as other pr data
+	6. issues: a DICTIONARY with key as issue number and value as other issue data
+
+OUTPUT: 
+	None, but outputs combined data into csv with release name and date added as new columns
+
+'''
+def organizeByDate(sortBy,releases,sortedReleasesNames,firstRelease, pullRequests,issues):
+
+	sortedPRs = {} # this will be a dictionary with key as release name and value is dictionary of prs
+	sortedIssues = {} # this will be a dictionary with key as release name and value is dictionary of prs
+	
+	
+
+
+'''
+main method
+
+Checks that necessary CSV files exist, and gets release data
+Calls sortDataByRelease 
+'''
 def main():
 
 	if(len(sys.argv) < 3):
@@ -55,30 +83,50 @@ def main():
 
 		# get the CSV files and make sure they exists
 		try:
-			releasesCSV = Path(str(dataPath) + "/" + str(repoName) + "-releases.csv")
-			tagsCSV = Path(str(dataPath) + "/" + str(repoName) + "-tags.csv").resolve()
+			releasesCSV = Path(str(dataPath) + "/" + str(repoName) + "-releases.csv").resolve()
 			pullRequestCSV = Path(str(dataPath) + "/" + str(repoName) + "-pullrequests.csv").resolve()
 			issuesCSV = Path(str(dataPath) + "/" + str(repoName) + "-issues.csv").resolve()
 		except FileNotFoundError as f:
 			print(f)
 
-		# first step is to see if there are releases or tags
-		releaseFile = open(releasesCSV) 
-		releases = csv.DictReader(releaseFile)
-		
-		# if there aren't any releases then use tags
-		if len(releases) == 0:
-			print("No releases, looking for tags..")
-			tagsFile = open(tagsCSV, newline='')
-			tags = csv.DictReader(tagsFile)
-			if len(tags) == 0:
-				print("No Tags!")
+		# first step is to make an object for the release data 
+		with releasesCSV.open() as releaseFile:
+			releaseReader = csv.DictReader(releaseFile)
+			
+			#put the releases into a dictionary containing the release name and date
+			releases = {} 
+			for row in releaseReader:
+				#transform the string date (ISO 8601 format: YYYY-MM-DDTHH:MM:SSZ) into Python date object
+				releases[row['name']] = datetime.datetime.strptime(row['created_at'], "%Y-%m-%dT%H:%M:%SZ")
+			
+			#If there aren't any releases, you need to select a different project!
+			if len(releases) == 0:
+				print("No Releases! Sorry, please choose another project.")
 			else:
-				organizeByTags(tags)
-		else:
-			organizeByReleases(releases)
-		
-		tagsFile.close()
-		releaseFile.close()
+				print(str(len(releases)) + " Releases found!")
+				
+				# get a list of release names sorted by date
+				sortedReleaseNames = sorted(releases, key=releases.get)
+				# get the date of the fist release
+				firstReleaseDate = releases[sortedReleaseNames[0]]
 
-main()
+				# put pull request data in a dict
+				with pullRequestCSV.open() as prFile:
+					prReader = csv.DictReader(prFile)
+					pullrequests = {}
+					for row in prReader:
+						pullRequests['number'] = row
+				prFile.close()
+
+				# put issue data in a dict
+				with issuesCSV.open() as issueFile:
+					issueReader = csv.DictReader(issueFile)
+					issues = {}
+					for row in issueReader:
+						issues['number'] = row
+				issueFile.close()	
+		releaseFile.close()
+		# organize the PR and issue data by date opened and closed
+		organizeByDate('open', releases, sortedReleaseNames, firstReleaseDate, pullRequestCSV, issuesCSV)
+		#organizeByDate('closed', releases, sortedReleaseNames, firstReleaseDate, pullRequestCSV, issuesCSV)
+main() 
