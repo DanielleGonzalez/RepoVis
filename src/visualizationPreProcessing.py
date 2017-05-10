@@ -84,31 +84,33 @@ def organizeByDate(sortBy,releases,pullRequests,issues,repoName):
 	print("Organizing " + str(len(pullRequests)) + " Pull Requests by Release Date...")
 	for pr in pullRequests:
 		#get all releases that happened after the pr was opened, then sort this list by date
-		prDate = datetime.datetime.strptime(pullRequests[pr][sortBy], "%Y-%m-%dT%H:%M:%SZ")
-		possiblePRReleases = dict((k, v) for k, v in releases.items() if v >= prDate)
-		
-		if len(possiblePRReleases) > 0:
-			# the earliest release that happened AFTER the PR was opened or closed is selected as the release
-			# for example, all PRs opened before the first release 'belong' to that release
-			prRelease = sorted(possiblePRReleases, key=possiblePRReleases.get)[0]
-			pullRequests[pr]['release_Date'] = releases[prRelease].strftime("%Y-%m-%dT%H:%M:%SZ")
-			pullRequests[pr]['release_Name'] = prRelease
+		if pullRequests[pr][sortBy] != 'None':
+			prDate = datetime.datetime.strptime(pullRequests[pr][sortBy], "%Y-%m-%dT%H:%M:%SZ")
+			possiblePRReleases = dict((k, v) for k, v in releases.items() if v >= prDate)
+			
+			if len(possiblePRReleases) > 0:
+				# the earliest release that happened AFTER the PR was opened or closed is selected as the release
+				# for example, all PRs opened before the first release 'belong' to that release
+				prRelease = sorted(possiblePRReleases, key=possiblePRReleases.get)[0]
+				pullRequests[pr]['release_Date'] = releases[prRelease].strftime("%Y-%m-%dT%H:%M:%SZ")
+				pullRequests[pr]['release_Name'] = prRelease
 
 	print("Organizing " + str(len(issues)) + " Issues by Release Date...")
 	for issue in issues:
 		#get all releases that happened after the pr was opened, then sort this list by date
-		issueDate = datetime.datetime.strptime(issues[issue][sortBy], "%Y-%m-%dT%H:%M:%SZ")
-		possibleIssueReleases = dict((k, v) for k, v in releases.items() if v >= issueDate)
-		
-		if len(possibleIssueReleases) > 0:
-			# the earliest release that happened AFTER the PR was opened or closed is selected as the release
-			# for example, all PRs opened before the first release 'belong' to that release
-			issueRelease = sorted(possibleIssueReleases, key=possibleIssueReleases.get)[0]
-			issues[issue]['release_Date'] = releases[issueRelease].strftime("%Y-%m-%dT%H:%M:%SZ")
-			issues[issue]['release_Name'] = issueRelease
+		if issues[issue][sortBy] != 'None':
+			issueDate = datetime.datetime.strptime(issues[issue][sortBy], "%Y-%m-%dT%H:%M:%SZ")
+			possibleIssueReleases = dict((k, v) for k, v in releases.items() if v >= issueDate)
 			
-	pullRequestOutput = "../data/" + str(repoName) + "-pullrequests-WITH-RELEASES.csv"
-	issueOutput = "../data/" + str(repoName) + "-issues-WITH-RELEASES.csv"
+			if len(possibleIssueReleases) > 0:
+				# the earliest release that happened AFTER the PR was opened or closed is selected as the release
+				# for example, all PRs opened before the first release 'belong' to that release
+				issueRelease = sorted(possibleIssueReleases, key=possibleIssueReleases.get)[0]
+				issues[issue]['release_Date'] = releases[issueRelease].strftime("%Y-%m-%dT%H:%M:%SZ")
+				issues[issue]['release_Name'] = issueRelease
+			
+	pullRequestOutput = "../data/" + str(repoName) + "-pullrequests-Releases-" + str(sortBy) + ".csv"
+	issueOutput = "../data/" + str(repoName) + "-issues-Releases-" + str(sortBy) + ".csv"
 	
 	writeDataToFile(pullRequests,pullRequestOutput, "Pull Requests (" + str(sortBy) + ")")
 	writeDataToFile(issues, issueOutput, "Issue (" + str(sortBy) + ")")
@@ -176,5 +178,5 @@ def main():
 		releaseFile.close()
 		# organize the PR and issue data by date opened and closed
 		organizeByDate('created_at', releases, pullRequests, issues, repoName)
-		#organizeByDate('closed_at', releases, pullRequest, issues)
+		organizeByDate('closed_at', releases, pullRequests, issues,repoName)
 main() 
