@@ -5,7 +5,6 @@ Five metadata are collected. Each one provides an important insight into the sta
 2. Pull Requests
 3. Issues
 4. Releases
-5. Tags (in case there are no releases
 
 # Usage - Data Collection
 To use the script, call 
