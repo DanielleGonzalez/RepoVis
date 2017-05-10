@@ -22,7 +22,6 @@ other desired metadata
 
 Current Metadata Collected (On Repository-Level):
 1. Releases
-2. Tags
 2. Issues
 3. Pull Requests
 4. Contributors
@@ -79,7 +78,6 @@ def main():
 		pullRequestOutput = "../data/" + str(repoName) + "-pullrequests.csv"
 		issueOutput = "../data/" + str(repoName) + "-issues.csv"
 		releasesOutput = "../data/" + str(repoName) + "-releases.csv"
-		tagsOutput = "../data/" + str(repoName) + "-tags.csv"
 
 		# get the requested data from the Github API and then write it to the data file
 
@@ -96,8 +94,6 @@ def main():
 		releasesData = apiUtil.getReleases(userName, pw, repoURL)
 		writeDataToFile(releasesData, releasesOutput, "releases")
 
-		tagsData = apiUtil.getTags(userName,pw,repoURL)
-		writeDataToFile(tagsData, tagsOutput, "tags")
 
 
 main()
