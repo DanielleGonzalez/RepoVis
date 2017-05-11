@@ -21,7 +21,7 @@ The code is designed to be extensible, meaning other endpoints (such as commits)
 
 Please refer to the API documents for the schemas (or existing data - the headers are the attributes). For my purposes I excluded some data that was returned from the final output, so see what I've included and the adjust to your needs. 
 
-**Step 2: Process the Data for Visualization by Release **
+**Step 2: Process the Data for Visualization by Release**
 Next, the data is processed to be counted and categorized by release
 To use the script, call
 
