@@ -1,12 +1,15 @@
-google.charts.load("current", {packages:["timeline"]});
-google.charts.setOnLoadCallback(drawTimeline);
+google.charts.load("current", {'packages':['corechart','line','timeline']});
+google.charts.setOnLoadCallback(drawPRData);
+google.charts.setOnLoadCallback(drawIssueData);
+google.charts.setOnLoadCallback(drawContribData);
 
-function prs_opened():
+function drawPRData():
+	var prChart = new google.visualization.LineChart(document.getElementById('prdata'));
 
-function prs_closed():
+function drawIssueData():
+	var issueChart = new google.visualization.LineChart(document.getElementById('issuedata'));
 
-function prs_per_Contributor():
+function drawContribData():
+	var contribChart = new google.visualization.LineChart(document.getElementById('contribdata'));
 
-function calculateStats():
 
-function parseCSVs():
