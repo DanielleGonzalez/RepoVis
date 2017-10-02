@@ -39,4 +39,7 @@ the getRepoMetadata script releases one CSV per metadata, and the makeReleaseCSV
 
 # Usage - Visualization
 
-:sparkles:Coming Soon!:sparkles:
+I am no longer actively working on this project. I don't want to say it is abandoned, but I have other projects right now so it is not a focus. However, if anyone wants to submit a PR to extend/improve this part, I would be happy to return to it.
+
+A basic template for creating a web page with Google Charts visualizations is available under the /VisualizationWebPageTemplate directory. 
+
