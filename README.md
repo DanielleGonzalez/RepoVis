@@ -1,4 +1,5 @@
 # RepoVis
+*Note: This was developed for a course in 2017 and is not active*
 This project provides python scripts to automatically collect and process metadata for a project using the Github API. Additionally, templates for developing visualizations using Google Charts are provided. The aim of this project is to develop a set of visualizations which can show changes in the project-level metadata of a large-scale open source project cross all releases. 
 Four metadata are collected. Each one provides an important insight into the state of the project:
 1. Contributors
